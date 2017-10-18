@@ -17,7 +17,7 @@ func main() {
     http.ListenAndServe(":"+port,nil)
 }
 
-func handler(w http.ResponseWrite, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hello, %q", r.URL.Path[1:])
 
 }
