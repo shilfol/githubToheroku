@@ -22,7 +22,7 @@ var titleValidator = regexp.MustCompile("^[a-zA-Z0-9]+$")
 
 func init() {
 	for _, tmpl := range []string{"edit", "view"} {
-		t := template.Must(template.ParseFile(tmpl + ".html"))
+		t := template.Must(template.ParseFiles(tmpl + ".html"))
 		templates[tmpl] = t
 	}
 }
@@ -96,14 +96,14 @@ func loadPage(title string) (*Page, error) {
 		return nil, err
 
 	}
-	return &Page{Title: title, Body: body}
+	return &Page{Title: title, Body: body}, nil
 }
 
 func main() {
 
-	http.HandleFunc("/view/", makeHandler(viewhandler))
-	http.HandleFunc("/edit/", makeHandler(edithandler))
-	http.HandleFunc("/save/", makeHandler(savehandler))
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
 	http.ListenAndServe(":8080", nil)
 }
 
