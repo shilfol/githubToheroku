@@ -56,7 +56,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
-	err = p.save()
+	err := p.save()
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
@@ -66,15 +66,15 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err = templates[tmpl].Execute(w, p)
+	err := templates[tmpl].Execute(w, p)
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 	}
 }
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandleFunc {
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		title = r.URL.Path[lenPath:]
+		title := r.URL.Path[lenPath:]
 		if !titleValidator.MatchString(title) {
 			http.NotFound(w, r)
 			return
