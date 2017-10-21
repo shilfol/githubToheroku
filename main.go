@@ -27,10 +27,6 @@ func init() {
 	}
 }
 
-func (e error) String() string {
-	return fmt.Sprint(e)
-}
-
 func getTitle(w http.ResponseWriter, r *http.Request) (title string, err error) {
 	title = r.URL.Path[lenPath:]
 	if !titleValidator.MatchString(title) {
@@ -62,7 +58,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.(string), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
@@ -72,7 +68,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	err := templates[tmpl].Execute(w, p)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.(string), http.StatusInternalServerError)
 	}
 }
 
