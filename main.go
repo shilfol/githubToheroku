@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
-	"template"
 )
 
 type Page struct {
@@ -22,16 +24,16 @@ var titleValidator = regexp.MustCompile("^[a-zA-Z0-9]+$")
 
 func init() {
 	for _, tmpl := range []string{"edit", "view"} {
-		t := template.Must(template.ParseFile(tmpl + ".html"))
+		t := template.Must(template.ParseFiles(tmpl + ".html"))
 		templates[tmpl] = t
 	}
 }
 
-func getTitle(w http.ResponseWriter, r *http.Request) (title string, err os.Error) {
+func getTitle(w http.ResponseWriter, r *http.Request) (title string, err error) {
 	title = r.URL.Path[lenPath:]
 	if !titleValidator.MatchString(title) {
 		http.NotFound(w, r)
-		err = os.NewError("Invalid Page Title")
+		err = errors.New("Invalid Page Title")
 	}
 	return
 }
@@ -56,9 +58,9 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
-	err = p.save()
+	err := p.save()
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
@@ -66,15 +68,15 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err = templates[tmpl].Execute(w, p)
+	err := templates[tmpl].Execute(w, p)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandleFunc {
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		title = r.URL.Path[lenPath:]
+		title := r.URL.Path[lenPath:]
 		if !titleValidator.MatchString(title) {
 			http.NotFound(w, r)
 			return
@@ -84,27 +86,32 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 }
 
-func (p *Page) save() os.Error {
+func (p *Page) save() error {
 	filename := p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 600)
+	return ioutil.WriteFile(filename, p.Body, 666)
 }
 
-func loadPage(title string) *Page {
+func loadPage(title string) (*Page, error) {
 	filename := title + ".txt"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 
 	}
-	return &Page{Title: title, Body: body}
+	return &Page{Title: title, Body: body}, nil
 }
 
 func main() {
 
-	http.HandleFunc("/view/", makeHandler(viewhandler))
-	http.HandleFunc("/edit/", makeHandler(edithandler))
-	http.HandleFunc("/save/", makeHandler(savehandler))
-	http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.ListenAndServe(":"+port, nil)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
