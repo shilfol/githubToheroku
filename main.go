@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"template"
+	"text/template"
 )
 
 type Page struct {
