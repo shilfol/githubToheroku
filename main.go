@@ -58,7 +58,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
-		http.Error(w, err.(string), http.StatusInternalServerError)
+		http.Error(w, string(err), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
@@ -68,7 +68,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	err := templates[tmpl].Execute(w, p)
 	if err != nil {
-		http.Error(w, err.(string), http.StatusInternalServerError)
+		http.Error(w, string(err), http.StatusInternalServerError)
 	}
 }
 
