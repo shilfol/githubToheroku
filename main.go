@@ -88,7 +88,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 func (p *Page) save() error {
 	filename := p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 600)
+	return ioutil.WriteFile(filename, p.Body, 666)
 }
 
 func loadPage(title string) (*Page, error) {
