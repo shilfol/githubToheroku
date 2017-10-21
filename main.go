@@ -1,12 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
-	"text/template"
 )
 
 type Page struct {
@@ -27,11 +27,11 @@ func init() {
 	}
 }
 
-func getTitle(w http.ResponseWriter, r *http.Request) (title string, err os.Error) {
+func getTitle(w http.ResponseWriter, r *http.Request) (title string, err error) {
 	title = r.URL.Path[lenPath:]
 	if !titleValidator.MatchString(title) {
 		http.NotFound(w, r)
-		err = os.NewError("Invalid Page Title")
+		err = errors.New("Invalid Page Title")
 	}
 	return
 }
@@ -84,12 +84,12 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 }
 
-func (p *Page) save() os.Error {
+func (p *Page) save() error {
 	filename := p.Title + ".txt"
 	return ioutil.WriteFile(filename, p.Body, 600)
 }
 
-func loadPage(title string) *Page {
+func loadPage(title string) (*Page, error) {
 	filename := title + ".txt"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
